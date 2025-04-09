@@ -4,18 +4,18 @@ from student_auth.models import StudentUser
 class Resource(models.Model):
 
     def update_admin():
-        return StudentUser.objects.get(username='admin')
+        return StudentUser.objects.get(username="admin")
     
     TAG_CHOICES = [
-        ('C', 'College'),
-        ('F', 'Fun'),
-        ('W', 'Win'),
+        ("College", "College"),
+        ("Fun", "Fun"),
+        ("Win", "Win"),
     ]
 
     name = models.CharField(max_length=255)
     desc = models.TextField()
-    tag = models.CharField(max_length=50, choices=TAG_CHOICES)
-    created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name='resources')
+    tag = models.CharField(max_length=20, choices=TAG_CHOICES)
+    created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name="resources")
     created_on = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -24,11 +24,12 @@ class Resource(models.Model):
 class ResourceSection(models.Model):
 
     def update_admin():
-        return StudentUser.objects.get(username='admin')
+        return StudentUser.objects.get(username="admin")
 
     name = models.CharField(max_length=100)
-    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='sections')
-    created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name='sections')
+    desc = models.TextField(max_length=100, blank=True)
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name="sections")
+    created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name="sections")
     created_on = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -37,12 +38,13 @@ class ResourceSection(models.Model):
 class Row(models.Model):
     
     def update_admin():
-        return StudentUser.objects.get(username='admin')
+        return StudentUser.objects.get(username="admin")
     
     name = models.CharField(max_length=100)
     link = models.URLField()
-    resource_section = models.ForeignKey(ResourceSection, on_delete=models.CASCADE, related_name='rows')
-    created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name='rows')
+    desc = models.CharField(max_length=100, blank=True)
+    resource_section = models.ForeignKey(ResourceSection, on_delete=models.CASCADE, related_name="rows")
+    created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name="rows")
     created_on = models.DateField(auto_now_add=True)
 
     def __str__(self):

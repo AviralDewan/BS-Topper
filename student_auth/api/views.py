@@ -8,11 +8,6 @@ from .serializers import StudentUserSerializer
 def register_student(request):
     if request.method == 'POST':
         try:
-            if 'username' not in request.data or 'password' not in request.data or 'first_name' not in request.data or 'last_name' not in request.data:
-                return Response({"message": "Missing field(s)"}, status=status.HTTP_400_BAD_REQUEST)
-
-            if StudentUser.objects.filter(username=request.data.get('username')).exists():
-                return Response({"message": "User already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             serializer = StudentUserSerializer(data=request.data)
             if serializer.is_valid():
@@ -22,4 +17,5 @@ def register_student(request):
             return Response({"error": str(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as error:
+            print(error)
             return Response({"error": "An error occured, user could not be registered"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

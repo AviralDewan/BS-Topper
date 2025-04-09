@@ -5,12 +5,11 @@ class Group(models.Model):
     def get_default_admin():
         return StudentUser.objects.get(username='admin')
 
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     desc = models.TextField()
     rules = models.TextField()
     profile_pic = models.URLField()
     admin = models.ForeignKey(StudentUser, on_delete=models.SET(get_default_admin), related_name='group')
-    members_count = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.id}: {self.name} mod by {self.admin.username}"
@@ -56,6 +55,9 @@ class PostVotes(models.Model):
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='votes')
     student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='votes')
+
+    class Meta:
+        unique_together = ("post", "student")
 
     def __str__(self):
         return f"{self.id}: student #{self.student.username} upvoted post#{self.post.id}"

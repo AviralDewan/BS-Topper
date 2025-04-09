@@ -20,9 +20,9 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/student-auth/', include("student_auth.api.urls")),
-    # path('api/student-profile/', include("student_profile.urls")),
+    path('api/student-profile/', include("student_profile.api.urls")),
     # path('api/lectures/', include('lectures.urls')),
     # path('api/contest-event/', include('contest_event.urls')),
-    # path('api/groups/', include('groups.urls')),
-    # path('api/library/', include('library.urls'))
+    path('api/groups/', include('groups.api.urls')),
+    path('api/library/', include('library.api.urls'))
 ]

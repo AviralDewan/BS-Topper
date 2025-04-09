@@ -11,16 +11,16 @@ class StudentUser(AbstractUser):
     groups = models.ManyToManyField(Group, related_name="student_groups", blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name="student_permissions", blank=True)
 
-    PROGRAM_CHOICES = (
+    PROGRAM_CHOICES = [
         ('DS', 'Data Science'),
         ('ES', 'Electronic Systems')
-    )
+    ]
 
-    LEVEL_CHOICES = (
+    LEVEL_CHOICES = [
         ('FL', 'Foundation'),
         ('DP', 'Diploma'),
         ('DG', 'Degree')
-    )
+    ]
 
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)

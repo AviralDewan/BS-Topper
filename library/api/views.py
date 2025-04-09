@@ -1,36 +1,40 @@
-from django.shortcuts import render, HttpResponse
-import json
-from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from student_auth.models import StudentUser
-from .models import Resource, ResourceSection, Row
+from library.models import Resource, ResourceSection, Row
+from .serializers import RowSerializer, ResourceSectionSerializer, ResourceSerializer
+from .permissions import IsCreatorOrAdmin
+from .pagination import ResourcePaginator
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def add_resource(request):
 
-    if request.method == 'POST':
-
-        if not request.user.is_authenticated:
-            return HttpResponse('You must be logged in to perform this action')
+    try:
         
-        student = StudentUser.objects.get(id=request.user.id)
+        student = request.user
 
-        name = request.POST.get('name')
-        desc = request.POST.get('desc')
-        tag = request.POST.get('tag')
+        name = request.data.get("name")
+        desc = request.data.get("desc")
+        tag = request.data.get("tag")
 
         if not name or not desc or not tag:
-            return HttpResponse('Please provide required information')
-        
-        if Resource.objects.filter(name=name).exists():
-            return HttpResponse('Resource already exists')
+            return Response({"message": "Please provide required information"}, status=status.HTTP_400_BAD_REQUEST)
         
         if tag not in [tag[0] for tag in Resource.TAG_CHOICES]:
-            return HttpResponse('Tag not found')
+            return Response({"message": "Tag not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if Resource.objects.filter(name=name).exists():
+            return Response({"message": "Resource already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
         resource = Resource.objects.create(name=name.strip(),desc=desc.strip(),tag=tag,created_by=student)
 
-        return HttpResponse('Resource created')
+        return Response({"message": "Resource created"}, status=status.HTTP_201_CREATED)
 
-    return HttpResponse('Incorrect REST method')
+    except Exception as e:
+        return Response({"error": "An error ocucured, couldn't create resource"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 def search_library(request, tag):
 
@@ -55,26 +59,22 @@ def search_library(request, tag):
     
     return HttpResponse('Incorrect REST method')
 
+@api_view(["GET"])
 def view_library(request):
 
-    if request.method == 'GET':
+    try:
         
         resources = Resource.objects.all()
 
-        data = {
-            resource.id: {
-                'name': resource.name,
-                'desc': resource.desc,
-                'tag': resource.tag,
-                'created_on': resource.created_on,
-                'created_by': resource.created_by.username
-            }
-            for resource in resources
-        }
+        paginator = ResourcePaginator()
+        paginated_resources = paginator.paginate_queryset(resources, request)
 
-        return JsonResponse(data)
+        serializer = ResourceSerializer(paginated_resources, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
     
-    return HttpResponse('Incorrect REST method')
+    except Exception as e:
+        return Response({"error": "An error ocucured, couldn't get resources"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 def edit_resource(request, resource_id):
 
@@ -111,85 +111,80 @@ def edit_resource(request, resource_id):
     
     return HttpResponse('Incorrect REST method')
 
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
 def delete_resource(request, resource_id):
 
-    if request.method == 'DELETE':
-
-        if not request.user.is_authenticated:
-            return HttpResponse('You must be logged in to perform this action')
+    try:
         
         if not Resource.objects.filter(id=resource_id).exists():
-            return HttpResponse('Resource doesn\'t exist')
+            return Response({"message": "Resource doesn\'t exist"}, status=status.HTTP_404_NOT_FOUND)
         
         resource = Resource.objects.get(id=resource_id)
-        student = StudentUser.objects.get(id=request.user.id)
 
-        if resource.created_by != student:
-            return HttpResponse('You don\'t have required permission')
+        permission = IsCreatorOrAdmin()
+        if not permission.has_object_permission(request, None, resource):
+            return Response({"message": permission.message}, status=status.HTTP_403_FORBIDDEN)
         
         resource.delete()
 
-        return HttpResponse('Resource Deleted')
+        return Response({"message": "Resource Deleted"}, status=status.HTTP_204_NO_CONTENT)
     
-    return HttpResponse('Incorrect REST method')
+    except Exception as e:
+        return Response({"error": "An error ocucured, couldn't delete resource"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_my_resources(request):
 
-    if request.method == 'GET':
+    try:
 
-        if not request.user.is_authenticated:
-            return HttpResponse('You must be logged in to perform this action')
-
-        student = StudentUser.objects.get(id=request.user.id)
+        student = request.user
 
         resources = Resource.objects.filter(created_by=student)
 
-        data = {
-            resource.id: {
-                'name': resource.name,
-                'tag': resource.tag,
-                'created_by': resource.created_by.username,
-                'desc': resource.desc,
-                'created_on': resource.created_on
-            }
-            for resource in resources
-        }
+        paginator = ResourcePaginator()
+        paginated_resources = paginator.paginate_queryset(resources, request)
 
-        return JsonResponse(data)
+        serializer = ResourceSerializer(paginated_resources, many=True)
 
-    return HttpResponse('Incorrect REST method')
+        return paginator.get_paginated_response(serializer.data)
 
+    except Exception as e:
+        return Response({"error": "An error ocucured, couldn't get your resources"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def add_resource_section(request, resource_id):
 
-    if request.method == 'POST':
-
-        if not request.user.is_authenticated:
-            return HttpResponse('You must be logged in to perform this action')
+    try:
         
-        student = StudentUser.objects.get(id=request.user.id)
+        student = request.user
 
-        name = request.POST.get('name')
+        name = request.data.get("name")
 
         if not name:
-            return HttpResponse('Please provide required information')
-        
-        if not Resource.objects.filter(id=resource_id).exists():
-            return HttpResponse('Resource doesn\'t exist')
+            return Response({"message": "Please provide required information"}, status=status.HTTP_400_BAD_REQUEST)
         
         resource = Resource.objects.get(id=resource_id)
 
         if ResourceSection.objects.filter(name=name, resource=resource).exists():
-            return HttpResponse('Resource Section with this name already exists under this resource')
+            return Response({"message": "Resource Section with this name already exists under selected resource"}, status=status.HTTP_400_BAD_REQUEST)
         
         resource_section = ResourceSection.objects.create(name=name.strip(), created_by=student, resource=resource)
 
-        return HttpResponse('Resource Section created')
+        return Response({"message": "Resource Section created"}, status=status.HTTP_201_CREATED)
 
-    return HttpResponse('Incorrect REST method')
+    except Resource.DoesNotExist:
+        return Response({"message": "Resource not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception:
+        return Response({"error": "An error ocucured, couldn't create resource section"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
 def edit_resource_section(request, resource_section_id):
 
-    if request.method == 'PUT':
+    try:
         
         if not request.user.is_authenticated:
             return HttpResponse('You must be logged in to perform this action')
@@ -222,7 +217,8 @@ def edit_resource_section(request, resource_section_id):
 
         return HttpResponse('Resource Section updated')
     
-    return HttpResponse('Incorrect REST method')
+    except Exception as e:
+        return Response({"error": "An error ocucured, couldn't create resource section"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 def delete_resource_section(request, resource_section_id):
 
