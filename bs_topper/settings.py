@@ -34,7 +34,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'student_auth',
     'student_profile',
-    # 'lectures',
+    'lectures',
     # 'contest_event',
     'groups',
     'library',

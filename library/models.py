@@ -12,7 +12,7 @@ class Resource(models.Model):
         ("Win", "Win"),
     ]
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     desc = models.TextField()
     tag = models.CharField(max_length=20, choices=TAG_CHOICES)
     created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name="resources")
@@ -32,6 +32,9 @@ class ResourceSection(models.Model):
     created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name="sections")
     created_on = models.DateField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ("name", "resource")
+
     def __str__(self):
         return f"{self.id}: {self.resource.name}/{self.name}"
     
@@ -46,6 +49,9 @@ class Row(models.Model):
     resource_section = models.ForeignKey(ResourceSection, on_delete=models.CASCADE, related_name="rows")
     created_by = models.ForeignKey(StudentUser, on_delete=models.SET(update_admin), related_name="rows")
     created_on = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [("name", "resource_section"), ("link", "resource_section")]
 
     def __str__(self):
         return f"{self.id}: {self.resource_section.resource.name}/{self.resource_section.name}/{self.name}"
