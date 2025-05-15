@@ -26,7 +26,9 @@ SECRET_KEY = 'django-insecure-su$#_732m(bd))z3=u#d6&f8qm@^g%l^c=g#-am2s86p#&p6$q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "*"
+]
 
 
 # Application definition
@@ -37,6 +39,7 @@ INSTALLED_APPS = [
     'lectures',
     # 'contest_event',
     'groups',
+    "corsheaders",
     'library',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -47,6 +50,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    # "http://localhost:5173",
+    # "http://192.168.29.29:5173",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -73,6 +83,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

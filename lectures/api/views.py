@@ -4,6 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from collections import defaultdict
 from student_auth.models import StudentUser
+from .Scores import foundation
+from .Scores import diploma
+from .Scores import degree
 from lectures.models import Course, Lecture, TimeStamp
 from .serializers import CourseSerializer, WeekWiseLectureSerializer, TimeStampSerializer
 from .pagination import TimeStampPaginator
@@ -48,6 +51,41 @@ def get_course_list(request):
         return Response({"message": serializer.data}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": "An error occured, couldn't get course list"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+@api_view(["GET"])
+def get_test_fields(request):
+    try:
+        program = request.query_params.get("program")
+        level = request.query_params.get("level")
+        course_id = request.query_params.get("course")
+
+        if not program or not level or not course_id:
+            return Response({"message": "Please enter the required information"}, status=status.HTTP_400_BAD_REQUEST)
+
+        program, level = program.strip().upper(), level.strip().upper()
+
+        if program not in [program[0].upper() for program in StudentUser.PROGRAM_CHOICES] or level not in [level[0].upper() for level in StudentUser.LEVEL_CHOICES]:
+            return Response({"message": "Invalid program or level"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if level in ["DP", "DG"] or program in ["ES"]:
+            return Response({"coming_soon": "This feature will be coming soon"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not Course.objects.filter(id=course_id, program=program, level=level).exists():
+            return Response({"message": "Course doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        course = Course.objects.get(program=program, level=level, id=course_id)
+
+        if level == "FL":
+            fields = foundation.test_fields(course.code)
+        if level == "DP":
+            fields = diploma.test_fields(course.code)
+        elif level == "DG":
+            fields = degree.test_fields(course.code)
+        
+        return Response({"course_name": course.name, "data": fields}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": "An error occured, couldn't get test fields"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 @api_view(["GET"])
 def get_weeks_and_lectures(request, course_id):
