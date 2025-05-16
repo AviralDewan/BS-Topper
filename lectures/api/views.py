@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from collections import defaultdict
 from student_auth.models import StudentUser
-from .Scores import foundation
-from .Scores import diploma
-from .Scores import degree
+from .DSscores import foundation
+from .DSscores import diploma
+from .DSscores import degree
 from lectures.models import Course, Lecture, TimeStamp
 from .serializers import CourseSerializer, WeekWiseLectureSerializer, TimeStampSerializer
 from .pagination import TimeStampPaginator
@@ -87,6 +87,39 @@ def get_test_fields(request):
     except Exception as e:
         return Response({"error": "An error occured, couldn't get test fields"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+@api_view(["POST"])
+def calc_score(request):
+    try:
+        program = request.data.get("program")
+        level = request.data.get("level")
+        course_id = request.data.get("course_id")
+        marks_list = request.data.get("marks_list")
+
+        if not program or not level or not course_id or not marks_list:
+            return Response({"message": "Please enter the required information"}, status=status.HTTP_400_BAD_REQUEST)
+
+        program, level = program.strip().upper(), level.strip().upper()
+
+        if program not in [program[0].upper() for program in StudentUser.PROGRAM_CHOICES] or level not in [level[0].upper() for level in StudentUser.LEVEL_CHOICES]:
+            return Response({"message": "Invalid program or level"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if level in ["DP", "DG"] or program in ["ES"]:
+            return Response({"coming_soon": "This feature will be coming soon"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not Course.objects.filter(id=course_id, program=program, level=level).exists():
+            return Response({"message": "Course doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        course = Course.objects.get(program=program, level=level, id=course_id)
+
+        if level == "FL":
+            current_status, marks_coordinates, resources = foundation.calc_score(course.code, marks_list)
+        
+        return Response({"current_status": current_status, "marks_coordinates": marks_coordinates, "resources": resources}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print(str(e))
+        return Response({"error": "An error occured, couldn't predict grade"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
 @api_view(["GET"])
 def get_weeks_and_lectures(request, course_id):
     
@@ -138,7 +171,6 @@ def get_timestamps(request):
     except Lecture.DoesNotExist:
         return Response({"message": "Lecture Not Found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        print(e)
         return Response({"error": "An error occured, couldn't save time stamp"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 @api_view(["DELETE"])
@@ -182,7 +214,6 @@ def save_timestamps(request):
     except Lecture.DoesNotExist:
         return Response({"message": "Lecture Not Found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        print(e)
         return Response({"error": "An error occured, couldn't save time stamp"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     
 def ai_help(request):
