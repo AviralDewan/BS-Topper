@@ -43,12 +43,11 @@ class ResourceSectionSerializer(serializers.ModelSerializer):
         return instance
 
 class ResourceSerializer(serializers.ModelSerializer):
-    sections = ResourceSectionSerializer(many=True, read_only=True)
     created_by = StudentUserSerializer(read_only=True)
 
     class Meta:
         model = Resource
-        fields = ["name", "desc", "tag", "created_by", "created_on", "sections"]
+        fields = ["id", "name", "desc", "is_pyq", "subject", "exam_type", "held_on", "session", "link", "tag", "created_by", "created_on"]
     
     def update(self, instance, validated_data):
         name = validated_data.get("name")

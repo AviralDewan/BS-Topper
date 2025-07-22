@@ -20,7 +20,7 @@ def add_resource(request):
         desc = request.data.get("desc")
         tag = request.data.get("tag")
 
-        if not name or not desc or not tag:
+        if not name or not tag:
             return Response({"message": "Please provide required information"}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = ResourceSerializer(data=request.data)
@@ -28,7 +28,7 @@ def add_resource(request):
             serializer.save(created_by=request.user)
             return Response({"message": "Resource created"}, status=status.HTTP_201_CREATED)
 
-        return Response({"error": serializer.errors}, status=status.HTTP_201_CREATED)
+        return Response({"error": serializer.errors}, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response({"error": "An error ocucured, couldn't create resource"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
@@ -56,6 +56,20 @@ def search_library(request):
     
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+@api_view(["GET"])
+def get_resource(request, resource_id):
+    try:
+        if not resource_id:
+            return Response({"message": "Please provide a Resource ID"}, status=status.HTTP_400_BAD_REQUEST)
+        resource = Resource.objects.filter(id=resource_id)
+        if not resource:
+            return Response({"message": "Resource Not Found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ResourceSerializer(resource[0])
+
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({"error": str(e)}, status.HTTP_503_SERVICE_FORBIDDEN)
 
 @api_view(["GET"])
 def view_library(request):

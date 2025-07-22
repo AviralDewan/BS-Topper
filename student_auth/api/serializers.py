@@ -11,6 +11,7 @@ class StudentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentUser
         fields = [
+            "id",
             "username",
             "password",
             "first_name",
@@ -28,8 +29,6 @@ class StudentUserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "password": {"write_only": True, "required": True},
             "username": {"required": True},
-            "first_name": {"required": True},
-            "last_name": {"required": True},
         }
 
     def get_profile_url(self, obj):

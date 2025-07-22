@@ -6,6 +6,7 @@ urlpatterns = [
     path('view-library/', views.view_library, name='view_library'),
     path('search-library/', views.search_library, name='search_library'),
     path('add-resource/', views.add_resource, name='add_resource'),
+    path('get-resource/<int:resource_id>/', views.get_resource, name='get_resource'),
     path('edit-resource/<int:resource_id>/', views.edit_resource, name='edit_resource'),
     path('delete-resource/<int:resource_id>/', views.delete_resource, name='delete_resource'),
     path('get-my-resources/', views.get_my_resources, name='get_my_resources'),

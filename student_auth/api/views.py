@@ -14,8 +14,7 @@ def register_student(request):
                 serializer.save()
                 return Response({"message": "User registered"}, status=status.HTTP_201_CREATED)
             
-            return Response({"error": str(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as error:
-            print(error)
             return Response({"error": "An error occured, user could not be registered"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

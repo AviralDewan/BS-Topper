@@ -64,6 +64,8 @@ def get_test_fields(request):
 
         program, level = program.strip().upper(), level.strip().upper()
 
+        print(program, level, course_id)
+
         if program not in [program[0].upper() for program in StudentUser.PROGRAM_CHOICES] or level not in [level[0].upper() for level in StudentUser.LEVEL_CHOICES]:
             return Response({"message": "Invalid program or level"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -85,6 +87,7 @@ def get_test_fields(request):
         return Response({"course_name": course.name, "data": fields}, status=status.HTTP_200_OK)
 
     except Exception as e:
+        print(str(e))
         return Response({"error": "An error occured, couldn't get test fields"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 @api_view(["POST"])

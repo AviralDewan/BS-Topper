@@ -22,8 +22,8 @@ class StudentUser(AbstractUser):
         ('DG', 'Degree')
     ]
 
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
     program = models.CharField(max_length=25, choices=PROGRAM_CHOICES, blank=True, null=True)
     level = models.CharField(max_length=25, choices=LEVEL_CHOICES, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
