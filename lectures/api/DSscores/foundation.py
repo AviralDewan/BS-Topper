@@ -209,7 +209,6 @@ def calc_score(code, marks_list):
         Bonus = marks_list["4"]
         F = 0
 
-        # Current score — choose the better formula
         score1 = 0.1 * GAA + 0.6 * F + 0.2 * max(Q1, Q2) + Bonus
         score2 = 0.1 * GAA + 0.4 * F + 0.2 * Q1 + 0.3 * Q2 + Bonus
         score = max(score1, score2)
@@ -230,14 +229,14 @@ def calc_score(code, marks_list):
     grade = get_grade(score)
     pass_or_not = grade != 'U'
 
-    # print(marks_coordinates)
-
     current_status = {
         "score": score,
         "grade": grade,
         "verdict": pass_or_not,
         "grade_verdict": sorted(grade_verdict) 
     }
+
+    print(current_status, marks_coordinates)
 
     resources = {}
 
