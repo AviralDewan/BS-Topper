@@ -141,7 +141,7 @@ def calc_score(code, marks_list):
 
 def calc_score(code, marks_list):
     grade_thresholds = [("S", 90), ("A", 80), ("B", 70), ("C", 60), ("D", 50), ("E", 40)]
-    
+
     def get_grade(score):
         if score >= 90: return 'S'
         elif score >= 80: return 'A'
@@ -162,13 +162,11 @@ def calc_score(code, marks_list):
     def calculate_needed_final_other(GAA, Q1, Q2, Bonus, target_score):
         needed_scores = []
 
-        # Option 1: 0.1*GAA + 0.6*F + 0.2*max(Q1, Q2) + Bonus
         fixed1 = 0.1 * GAA + 0.2 * max(Q1, Q2) + Bonus
         required_F1 = (target_score - fixed1) / 0.6
         if 0 <= required_F1 <= 100:
             needed_scores.append(round(required_F1, 2))
 
-        # Option 2: 0.1*GAA + 0.4*F + 0.2*Q1 + 0.3*Q2 + Bonus
         fixed2 = 0.1 * GAA + 0.2 * Q1 + 0.3 * Q2 + Bonus
         required_F2 = (target_score - fixed2) / 0.4
         if 0 <= required_F2 <= 100:
@@ -186,9 +184,8 @@ def calc_score(code, marks_list):
         OP1 = marks_list["4"]
         OP2 = marks_list["5"]
         Bonus = marks_list["6"]
-        F = 0  # Assume not attempted yet
+        F = 0
 
-        # Current score
         score = (
             0.1 * GAA1 + 0.1 * GAA2 + 0.2 * Q +
             0.4 * F + 0.25 * max(OP1, OP2) + 0.15 * min(OP1, OP2) + Bonus
@@ -196,8 +193,10 @@ def calc_score(code, marks_list):
 
         for grade, threshold in grade_thresholds:
             needed = calculate_needed_final_CS1002(GAA1, GAA2, Q, OP1, OP2, Bonus, threshold)
-            marks_coordinates[grade] = needed
-            if needed is not False:
+            if score < threshold and needed is not False:
+                marks_coordinates[grade] = needed
+                grade_verdict.append((grade, False))
+            elif score >= threshold:
                 grade_verdict.append((grade, True))
             else:
                 grade_verdict.append((grade, False))
@@ -214,31 +213,28 @@ def calc_score(code, marks_list):
         score = max(score1, score2)
 
         for grade, threshold in grade_thresholds:
-            needed = (
-                calculate_needed_final_CS1002(GAA1, GAA2, Q, OP1, OP2, Bonus, threshold) 
-                if code == "CS1002" 
-                else calculate_needed_final_other(GAA, Q1, Q2, Bonus, threshold)
-            )
-            marks_coordinates[grade] = needed
-            if score >= threshold:
-                grade_verdict.append((grade, True))  
-            elif needed is False:
-                grade_verdict.append((grade, False)) 
+            needed = calculate_needed_final_other(GAA, Q1, Q2, Bonus, threshold)
+            if score < threshold and needed is not False:
+                marks_coordinates[grade] = needed
+                grade_verdict.append((grade, True))
+            elif score >= threshold:
+                grade_verdict.append((grade, True))
+            else:
+                grade_verdict.append((grade, False))
 
     score = round(score, 2)
     grade = get_grade(score)
     pass_or_not = grade != 'U'
 
+    print(score, marks_coordinates)
+
     current_status = {
         "score": score,
         "grade": grade,
         "verdict": pass_or_not,
-        "grade_verdict": sorted(grade_verdict) 
+        "grade_verdict": sorted(grade_verdict)
     }
-
-    print(current_status, marks_coordinates)
 
     resources = {}
 
     return current_status, marks_coordinates, resources
-
