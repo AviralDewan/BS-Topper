@@ -56,25 +56,29 @@ class StudentUserSerializer(serializers.ModelSerializer):
         if " " in value:
             raise serializers.ValidationError("Username cannot contain spaces.")
         
-        if StudentUser.objects.filter(username=value).exists():
+        if StudentUser.objects.all().filter(username=value.strip()).exists():
             raise serializers.ValidationError("Username is already taken. Choose another.")
         
-        return value
+        return value.strip()
 
     def validate_first_name(self, value):
         """
         Ensures first name is not empty.
         """
-        if not value.strip():
-            raise serializers.ValidationError("First name cannot be empty.")
+        if len(value.strip()) == 0:
+            return value
+        # if not value.strip():
+        #     raise serializers.ValidationError("First name cannot be empty.")
         return value
 
     def validate_last_name(self, value):
         """
         Ensures last name is not empty.
         """
-        if not value.strip():
-            raise serializers.ValidationError("Last name cannot be empty.")
+        if len(value.strip()) == 0:
+            return value
+        # if not value.strip():
+        #     raise serializers.ValidationError("Last name cannot be empty.")
         return value
 
     def validate_password(self, value):
@@ -101,6 +105,26 @@ class StudentUserSerializer(serializers.ModelSerializer):
         valid_choices = dict(StudentUser.LEVEL_CHOICES).keys()
         if value not in valid_choices:
             raise serializers.ValidationError("Invalid level choice.")
+        return value
+    
+    def validate_roll_number(self, value):
+
+        if len(value.strip()) == 0:
+            return value
+
+        if " " in value or "f" not in value or len(value.strip()) > 10:
+            raise serializers.ValidationError("Invalid roll number")
+        
+        return value
+    
+    def validate_bio(self, value):
+
+        if len(value.strip()) == 0:
+            return value
+
+        if len(value.strip()) > 150:
+            raise serializers.ValidationError("Bio length must be less than 150 characters")
+        
         return value
 
     def to_representation(self, instance):

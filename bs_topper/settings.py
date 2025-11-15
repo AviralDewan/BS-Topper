@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'student_profile',
     'lectures',
     # 'contest_event',
+    'flashcards',
     'groups',
     "corsheaders",
     'library',

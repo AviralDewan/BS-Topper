@@ -24,5 +24,6 @@ urlpatterns = [
     path('api/lectures/', include('lectures.api.urls')),
     # path('api/contest-event/', include('contest_event.urls')),
     path('api/groups/', include('groups.api.urls')),
-    path('api/library/', include('library.api.urls'))
+    path('api/library/', include('library.api.urls')),
+    path('api/flashcards/', include('flashcards.api.urls'))
 ]

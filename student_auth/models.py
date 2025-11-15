@@ -28,9 +28,9 @@ class StudentUser(AbstractUser):
     level = models.CharField(max_length=25, choices=LEVEL_CHOICES, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     bio = models.TextField(blank=True, null=True)
-    profile_pic = models.URLField(blank=True, null=True)
+    profile_pic = models.URLField(default="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small_2x/default-avatar-icon-of-social-media-user-vector.jpg", blank=True, null=True)
     roll_number = models.CharField(max_length=10, unique=True, blank=True, null=True)
-    email = models.EmailField(unique=True, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
     mobile_number = models.CharField(
         max_length=15,
         blank=True,
@@ -40,3 +40,11 @@ class StudentUser(AbstractUser):
 
     def __str__(self):
         return f"{self.id}: {self.username} by {self.first_name} {self.last_name}"
+
+class BootcampRegister(models.Model):
+    name = models.CharField(max_length=255)
+    phone = models.IntegerField()
+    roll = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"{self.id}: {self.roll}"

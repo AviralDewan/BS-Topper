@@ -6,9 +6,10 @@ class Group(models.Model):
         return StudentUser.objects.get(username='admin')
 
     name = models.CharField(max_length=50, unique=True)
-    desc = models.TextField()
+    desc = models.TextField(blank=True)
     rules = models.TextField()
     profile_pic = models.URLField()
+    banner_pic = models.URLField()
     admin = models.ForeignKey(StudentUser, on_delete=models.SET(get_default_admin), related_name='group')
 
     def __str__(self):
@@ -27,7 +28,7 @@ class GroupMembership(models.Model):
 
 class Post(models.Model):
     title = models.CharField(max_length=255)
-    content = models.TextField()
+    content = models.TextField(blank=True)
     poster = models.ForeignKey(StudentUser, on_delete=models.SET_NULL, related_name='posts', null=True)
     posted_on = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='posts')
@@ -61,3 +62,14 @@ class PostVotes(models.Model):
 
     def __str__(self):
         return f"{self.id}: student #{self.student.username} upvoted post#{self.post.id}"
+
+class PostDownVotes(models.Model):
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='downvotes')
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='downvotes')
+
+    class Meta:
+        unique_together = ("post", "student")
+
+    def __str__(self):
+        return f"{self.id}: student #{self.student.username} downvoted post#{self.post.id}"

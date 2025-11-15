@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.ERROR)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdminOrNoGroup])
 def create_group(request):
+    print(request.data)
     if request.method == "POST":
 
         try:
@@ -23,7 +24,9 @@ def create_group(request):
             serializer = GroupSerializer(data=request.data, context={"request": request})
             if serializer.is_valid():
                 serializer.save(admin=request.user)
-                return Response({"message": "Group created", "data": serializer.data}, status=status.HTTP_200_OK)
+                group = Group.objects.get(name=request.data["name"])
+                membership = GroupMembership.objects.create(group=group, student=request.user)
+                return Response({"message": "Group created", "data": serializer.data, "id": group.id}, status=status.HTTP_200_OK)
             
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as error:
@@ -93,6 +96,18 @@ def change_admin(request):
             return Response({"error": "Selected student doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as error:
             return Response({"error": "An error occured, couldn't change admin"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def check_group_member(request, group_id):
+    try:
+        group = Group.objects.get(id=group_id)
+        is_member = GroupMembership.objects.filter(group=group, student=request.user).exists()
+        return Response({"is_member": is_member}, status=status.HTTP_200_OK)
+    except Group.DoesNotExist:
+        return Response({"error": "Group not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -164,12 +179,17 @@ def leave_group(request):
             return Response({"error": "An error occured, couldn't leave group"},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def get_my_groups(request):
     if request.method == "GET":
         
         try:
-            student = request.user
+            if request.GET.get("id"):
+                pkey = request.GET.get("id")
+                student = StudentUser.objects.get(pk=pkey)
+            else:
+                return Response({"error": "An error occured, couldn't get groups"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # student = request.user
 
             membership = GroupMembership.objects.filter(student=student)
             if not membership.exists():
@@ -185,6 +205,17 @@ def get_my_groups(request):
         except Exception:
             logging.exception("Get my Groups")
             return Response({"message": "An error occured, couldn't get groups"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def get_groups_list(request):
+    try:
+        
+        group_list = [(group.id, group.name) for group in Group.objects.all()]
+
+        return Response({"data": group_list}, status=status.HTTP_200_OK)
+
+    except Exception:
+        return Response({"error": "An error occured, couldn't get group names"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -212,8 +243,8 @@ def make_post(request):
             serializer = PostSerializer(data=request.data)
 
             if serializer.is_valid():
-                serializer.save(poster=student)
-                return Response({"message": "Post created"}, status=status.HTTP_201_CREATED)
+                post = serializer.save(poster=student)
+                return Response({"message": "Post created", "id": post.id}, status=status.HTTP_201_CREATED)
             
             return Response({"message": "Post not created"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
@@ -222,17 +253,22 @@ def make_post(request):
             return Response({"error": "An error occured, post couldn't be created"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def get_my_posts(request):
 
     if request.method == "GET":
         
         try:
-            student = request.user
-            if "group_id" in request.data:
-                if not Group.objects.filter(id=request.data["group_id"]).exists():
+            if request.GET.get("id"):
+                pkey = request.GET.get("id")
+                student = StudentUser.objects.get(pk=pkey)
+            else:
+                return Response({"error": "An error occured, couldn't get posts"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # student = request.user
+            if "group_id" in request.GET:
+                if not Group.objects.filter(id=request.GET["group_id"]).exists():
                     return Response({"message":"Group doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
-                group = Group.objects.get(id=request.data["group_id"])
+                group = Group.objects.get(id=request.GET["group_id"])
                 posts = Post.objects.filter(group=group, poster=student).order_by('-posted_on')
             else:
                 posts = Post.objects.filter(poster=student).order_by('-posted_on')
@@ -309,7 +345,10 @@ def delete_post(request, post_id):
             is_poster = IsPoster()
             if not is_poster.has_object_permission(request, None, post):
                 return Response({"message": is_poster.message}, status=status.HTTP_403_FORBIDDEN)
-
+            
+            pinned = getattr(post, 'pinned_post', None)
+            if pinned:
+                pinned.delete()
             post.delete()
 
             return Response({"message": "Post deleted"}, status=status.HTTP_204_NO_CONTENT)
@@ -330,12 +369,12 @@ def get_pinned_post(request, group_id):
             group = Group.objects.get(id=group_id)
 
             if not PinnedPost.objects.filter(group=group).exists():
-                return Response({"message": "No pinned post for this Group"}, status=status.HTTP_204_NO_CONTENT)
+                return Response({"message": "No pinned post for this Group"}, status=status.HTTP_200_OK)
             
             pinned_post = PinnedPost.objects.get(group=group)
 
             if not pinned_post.post:
-                return Response({"message": "No pinned post for this Group"}, status=status.HTTP_204_NO_CONTENT)
+                return Response({"message": "No pinned post for this Group"}, status=status.HTTP_200_OK)
             
             serializer = PostSerializer(pinned_post.post, context={"request": request})
 
@@ -379,9 +418,9 @@ def set_pinned_post(request, group_id):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Group.DoesNotExist:
-            return Response({"message": "Group doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Group doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
         except Post.DoesNotExist:
-            return Response({"message": "Post doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Post doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             logging.exception("Set pinned post")
             return Response({"error": "An error occured, couldn't set pinned post"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

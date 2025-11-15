@@ -4,8 +4,10 @@ from . import views
 app_name = 'groups'
 urlpatterns = [
     path('create-group/', views.create_group, name='create_group'),
+    path('get-groups-list/', views.get_groups_list, name="get_groups_list"),
     path('edit-group/', views.edit_group, name='edit_group'),
     path('change-admin/', views.change_admin, name='change_admin'),
+    path('check_group_member/<int:group_id>/', views.check_group_member, name="check_group_member"),
     path('join-group/', views.join_group, name='join-group'),
     path('leave-group/', views.leave_group, name='leave_group'),
     path('get-my-groups/', views.get_my_groups, name='get_my_groups'),

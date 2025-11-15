@@ -50,6 +50,7 @@ def get_course_list(request):
 
         return Response({"message": serializer.data}, status=status.HTTP_200_OK)
     except Exception as e:
+        print(e)
         return Response({"error": "An error occured, couldn't get course list"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 @api_view(["GET"])

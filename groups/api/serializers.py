@@ -49,10 +49,13 @@ class GroupMembershipSerializer(serializers.ModelSerializer):
         return instance
 
 class PostSerializer(serializers.ModelSerializer):
-    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
+    group = GroupSerializer()
     post_link = serializers.SerializerMethodField()
     profile_link = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+    votes = serializers.SerializerMethodField()
+    downvotes = serializers.SerializerMethodField()
+    poster = serializers.SerializerMethodField()
     
     class Meta:
         model = Post
@@ -68,8 +71,18 @@ class PostSerializer(serializers.ModelSerializer):
         if request:
             return request.build_absolute_uri(f"/api/student-profile/get-profile-details/{obj.poster.id}")
     
+    def get_poster(self, obj):
+        poster = obj.poster
+        return poster.username, poster.profile_pic, poster.id
+    
     def get_comment_count(self, obj):
         return Comment.objects.filter(post=obj).count()
+    
+    def get_votes(self, obj):
+        return obj.votes.count()
+    
+    def get_downvotes(self, obj):
+        return obj.downvotes.count()
 
 class PinnedPostSerializer(serializers.ModelSerializer):
     pass
