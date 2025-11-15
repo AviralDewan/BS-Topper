@@ -3,13 +3,17 @@ certifi==2025.1.31
 charset-normalizer==3.4.1
 DateTime==5.5
 Django==5.1.6
+django-cors-headers==4.7.0
 djangorestframework==3.15.2
 djangorestframework_simplejwt==5.5.0
+gunicorn==23.0.0
 idna==3.10
+packaging==25.0
 PyJWT==2.9.0
 pytz==2025.1
 requests==2.32.3
 setuptools==75.8.2
 sqlparse==0.5.3
 urllib3==2.3.0
+whitenoise==6.11.0
 zope.interface==7.2
