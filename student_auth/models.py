@@ -43,8 +43,8 @@ class StudentUser(AbstractUser):
 
 class BootcampRegister(models.Model):
     name = models.CharField(max_length=255)
-    phone = models.IntegerField()
-    roll = models.CharField(max_length=20)
+    phone = models.CharField(max_length=15)
+    roll = models.CharField(unique=True, max_length=255)
 
     def __str__(self):
-        return f"{self.id}: {self.roll}"
+        return f"{self.id}: {self.name} -> {self.roll}"

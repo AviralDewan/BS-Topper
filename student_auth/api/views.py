@@ -23,14 +23,39 @@ def register_student(request):
 
 @api_view(['POST'])
 def signup(request):
-    if 'name' not in request.data or 'roll' not in request.data or 'phone' not in request.data:
-        return Response('Please fill all fields')
-    
-    name, roll, phone = request.data["name"], request.data["roll"], request.data["phone"]
+    data = request.data
+
+    # 1. Validate required fields
+    required_fields = ['name', 'roll', 'phone']
+    for field in required_fields:
+        if field not in data or not str(data[field]).strip():
+            return Response(f"{field.capitalize()} is required", status=400)
+
+    name = data["name"].strip()
+    roll = str(data["roll"]).strip()
+    phone = str(data["phone"]).strip()
+
+    # 2. Validate phone number
+    if not phone.isdigit() or len(phone) < 10:
+        return Response("Invalid phone number", status=400)
+
+    # 3. Validate roll number length
+    if "@" not in roll or not roll.endswith("iitm.ac.in"):
+        return Response("Email must be an IITM email ending with @iitm.ac.in", status=400)
+
 
     try:
-        student = BootcampRegister.objects.get_or_create(name=name, roll=roll, phone=phone)
+        # 4. Create or return existing entry
+        student, created = BootcampRegister.objects.get_or_create(
+            roll=roll,
+            defaults={"name": name, "phone": phone}
+        )
 
-        return Response('Registered successfully!')
+        if not created:
+            return Response("You are already registered!", status=200)
+
+        return Response("Registered successfully!", status=201)
+
     except Exception as e:
-        return Response('An error occured, couldn\'t register')
+        print("Error:", e)
+        return Response("Server error. Could not register.", status=500)
