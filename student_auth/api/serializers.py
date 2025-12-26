@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from student_auth.models import StudentUser
+from student_auth.models import StudentUser, EventRegistration, EventSubmission
 
 class StudentUserSerializer(serializers.ModelSerializer):
     """
@@ -133,3 +133,59 @@ class StudentUserSerializer(serializers.ModelSerializer):
         """
         data = super().to_representation(instance)
         return {key: value for key, value in data.items() if value not in [None, "", []]}
+
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventRegistration
+        fields = "__all__"
+
+    def validate_email(self, value):
+        if "iitm.ac.in" not in value.split("@")[-1]:
+            raise serializers.ValidationError("Only IITM email allowed")
+        return value.lower()
+
+    def validate(self, data):
+        event_type = data.get("event_type")
+
+        # DSA → no teams
+        if event_type == "DSA":
+            if data.get("is_team"):
+                raise serializers.ValidationError("DSA is solo only")
+
+        # Team → at least 1 valid member
+        if data.get("is_team"):
+            team_emails = data.get("team_emails") or []
+            if not team_emails:
+                raise serializers.ValidationError(
+                    "At least one team member required"
+                )
+
+        # Hackathon → track mandatory
+        if event_type == "HACK" and not data.get("track"):
+            raise serializers.ValidationError("Track is required")
+
+        if not data.get("accepted_rules"):
+            raise serializers.ValidationError("Rules must be accepted")
+
+        return data
+
+
+class SubmissionSerializer(serializers.ModelSerializer):
+    # pass
+    class Meta:
+        model = EventSubmission
+        fields = "__all__"
+
+    def validate_email(self, value):
+        if "iitm.ac.in" not in value.split("@")[-1]:
+            raise serializers.ValidationError("Only IITM email allowed")
+        return value.lower()
+
+    def validate_submission_link(self, value):
+        if not (
+            value.startswith("https://github.com/")
+            or value.startswith("https://drive.google.com/")
+        ):
+            raise serializers.ValidationError("Invalid submission link")
+        return value

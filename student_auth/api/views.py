@@ -1,8 +1,40 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from student_auth.models import StudentUser, BootcampRegister
-from .serializers import StudentUserSerializer
+from student_auth.models import StudentUser, BootcampRegister, EventRegistration, EventSubmission
+from .serializers import StudentUserSerializer, RegistrationSerializer, SubmissionSerializer
+
+
+@api_view(["POST"])
+def register_event(request):
+    # return Response("hello, world")
+
+    serializer = RegistrationSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"message": "Registration successful"},
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+def submit_event(request):
+    # return Response("hello, world")
+
+    serializer = SubmissionSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"message": "Submission successful"},
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def register_student(request):
