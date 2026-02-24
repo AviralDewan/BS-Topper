@@ -90,8 +90,46 @@ class BootcampRegister(models.Model):
 
 class EventSubmission(models.Model):
     # pass
+    EVENT_TYPE_CHOICES = [
+        ("Pen It Down", "Pen It Down"),
+        ("Talent Showcase", "Talent Showcase"),
+        ("From Your Lens", "From Your Lens"),
+        ("Vaak – Yuddh", "Vaak – Yuddh")
+    ]
+
+    LEVEL_CHOICES = [
+        ("Foundation", "Foundation"),
+        ("Diploma", "Diploma"),
+        ("Degree", "Degree"),
+    ]
+
+    AWARNESS_CHOICES = [
+        ("Kaziranga Groups", "Kaziranga Groups"),
+        ("Email/WhatsApp Promotions", "Email/WhatsApp Promotions"),
+        ("Friends", "Friends"),
+    ]
+
+    name = models.CharField(max_length=100)
+
     event_id = models.IntegerField()
+    event_type = models.CharField(max_length=30, choices=EVENT_TYPE_CHOICES)
+
     email = models.EmailField()
+
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+
+    house = models.CharField(max_length=20, choices=[("Yes", "Yes"), ("No", "No")])
+
+    awarness = models.CharField(max_length=30, choices=AWARNESS_CHOICES)
+
+    phone = models.CharField(
+        max_length=10,
+        validators=[RegexValidator(r'^\d{10}$', 'Phone number must be 10 digits')]
+    )
+
+    permission_for_social = models.CharField(max_length=5, choices=[("Yes", "Yes"), ("No", "No")])
+
+    agree_to_rules = models.CharField(max_length=5, choices=[("Yes", "Yes"), ("No", "No")])
 
     submission_link = models.URLField()
 

@@ -155,20 +155,51 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
-    # pass
+
     class Meta:
         model = EventSubmission
         fields = "__all__"
+        # extra_kwargs = {
+        #     field: {"required": True, "allow_null": False, "allow_blank": False}
+        #     for field in [
+        #         "name",
+        #         "event_id",
+        #         "event_type",
+        #         "email",
+        #         "level",
+        #         "house",
+        #         "awarness",
+        #         "phone",
+        #         "permission_for_social",
+        #         "agree_to_rules",
+        #         "submission_link",
+        #     ]
+        # }
 
     def validate_email(self, value):
-        if "iitm.ac.in" not in value.split("@")[-1]:
-            raise serializers.ValidationError("Only IITM email allowed")
-        return value.lower()
+        value = value.lower()
+
+        if not value.endswith("@iitm.ac.in"):
+            raise serializers.ValidationError("Only IITM email allowed.")
+
+        return value
 
     def validate_submission_link(self, value):
-        if not (
-            value.startswith("https://github.com/")
-            or value.startswith("https://drive.google.com/")
-        ):
-            raise serializers.ValidationError("Invalid submission link")
+        if not value.startswith("https://drive.google.com/"):
+            raise serializers.ValidationError("Submission must be a Google Drive link.")
+
         return value
+
+    def validate_agree_to_rules(self, value):
+        if value != "Yes":
+            raise serializers.ValidationError("You must agree to the rules to submit.")
+
+        return value
+
+    # def validate(self, attrs):
+    #     # Extra safety: ensure absolutely nothing is missing
+    #     for field in self.Meta.extra_kwargs.keys():
+    #         if not attrs.get(field):
+    #             raise serializers.ValidationError({field: "This field is required."})
+
+    #     return attrs
