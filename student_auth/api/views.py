@@ -9,6 +9,8 @@ from .serializers import StudentUserSerializer, RegistrationSerializer, Submissi
 def register_event(request):
     # return Response("hello, world")
 
+    print(request.data)
+
     serializer = RegistrationSerializer(data=request.data)
 
     if serializer.is_valid():

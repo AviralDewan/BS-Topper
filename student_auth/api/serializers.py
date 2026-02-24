@@ -148,23 +148,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         event_type = data.get("event_type")
 
-        # DSA → no teams
-        if event_type == "DSA":
-            if data.get("is_team"):
-                raise serializers.ValidationError("DSA is solo only")
-
-        # Team → at least 1 valid member
-        if data.get("is_team"):
-            team_emails = data.get("team_emails") or []
-            if not team_emails:
-                raise serializers.ValidationError(
-                    "At least one team member required"
-                )
-
-        # Hackathon → track mandatory
-        if event_type == "HACK" and not data.get("track"):
-            raise serializers.ValidationError("Track is required")
-
         if not data.get("accepted_rules"):
             raise serializers.ValidationError("Rules must be accepted")
 

@@ -49,44 +49,44 @@ class BootcampRegister(models.Model):
     def __str__(self):
         return f"{self.id}: {self.name} -> {self.roll}"
 
-class EventRegistration(models.Model):
-    EVENT_TYPE_CHOICES = [
-        ("DSA", "DSA"),
-        ("IDEA", "Ideathon"),
-        ("HACK", "Hackathon"),
-    ]
+# class EventRegistration(models.Model):
+#     EVENT_TYPE_CHOICES = [
+#         ("DSA", "DSA"),
+#         ("IDEA", "Ideathon"),
+#         ("HACK", "Hackathon"),
+#     ]
 
-    event_id = models.IntegerField()
-    event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
+#     event_id = models.IntegerField()
+#     event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
 
-    name = models.CharField(max_length=100)
+#     name = models.CharField(max_length=100)
 
-    phone = models.CharField(
-        max_length=10,
-        validators=[RegexValidator(r'^\d{10}$', 'Phone must be 10 digits')]
-    )
+#     phone = models.CharField(
+#         max_length=10,
+#         validators=[RegexValidator(r'^\d{10}$', 'Phone must be 10 digits')]
+#     )
 
-    email = models.EmailField()
+#     email = models.EmailField()
 
-    is_team = models.BooleanField(default=False)
+#     is_team = models.BooleanField(default=False)
 
-    team_emails = models.JSONField(blank=True, null=True)  
+#     team_emails = models.JSONField(blank=True, null=True)  
 
-    track = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True
-    )  
+#     track = models.CharField(
+#         max_length=20,
+#         blank=True,
+#         null=True
+#     )  
 
-    accepted_rules = models.BooleanField(default=False)
+#     accepted_rules = models.BooleanField(default=False)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ("event_id", "email")
+#     class Meta:
+#         unique_together = ("event_id", "email")
 
-    def __str__(self):
-        return f"{self.name} - {self.event_id}"
+#     def __str__(self):
+#         return f"{self.name} - {self.event_id}"
 
 class EventSubmission(models.Model):
     # pass
@@ -102,4 +102,34 @@ class EventSubmission(models.Model):
 
     def __str__(self):
         return f"{self.email} - {self.event_id}"
+
+class EventRegistration(models.Model):
+    EVENT_TYPE_CHOICES = [
+        ("Pen It Down", "Pen It Down"),
+        ("Talent Showcase", "Talent Showcase"),
+        ("From Your Lens", "From Your Lens"),
+        ("Vaak – Yuddh", "Vaak – Yuddh")
+    ]
+
+    event_id = models.IntegerField()
+    event_type = models.CharField(max_length=30, choices=EVENT_TYPE_CHOICES)
+
+    name = models.CharField(max_length=100)
+
+    phone = models.CharField(
+        max_length=10,
+        validators=[RegexValidator(r'^\d{10}$', 'Phone number must be 10 digits')]
+    )
+
+    email = models.EmailField()  
+
+    accepted_rules = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("event_id", "email")
+
+    def __str__(self):
+        return f"{self.name} - {self.event_type} : {self.email}"
 
