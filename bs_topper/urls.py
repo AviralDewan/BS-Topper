@@ -19,11 +19,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/student-auth/', include("student_auth.api.urls")),
-    path('api/student-profile/', include("student_profile.api.urls")),
-    path('api/lectures/', include('lectures.api.urls')),
-    # path('api/contest-event/', include('contest_event.urls')),
-    path('api/groups/', include('groups.api.urls')),
-    path('api/library/', include('library.api.urls')),
-    path('api/flashcards/', include('flashcards.api.urls'))
+    path('student-auth/', include("student_auth.api.urls"))
 ]

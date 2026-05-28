@@ -33,14 +33,8 @@ ALLOWED_HOSTS = ["*", ]
 # Application definition
 
 INSTALLED_APPS = [
-    'student_auth',
-    'student_profile',
-    'lectures',
-    # 'contest_event',
-    'flashcards',
-    'groups',
+    "student_auth",
     "corsheaders",
-    'library',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,8 +46,8 @@ INSTALLED_APPS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    # "http://localhost:5173",
-    # "http://192.168.29.29:5173",
+    "http://localhost:5173",
+    "http://192.168.29.29:5173",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -146,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'student_auth.StudentUser'
+AUTH_USER_MODEL = 'auth.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
