@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ["*", ]
 
 INSTALLED_APPS = [
     "student_auth",
+    "resources",
     "corsheaders",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -140,7 +141,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'auth.User'
+AUTH_USER_MODEL = 'student_auth.Student'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
